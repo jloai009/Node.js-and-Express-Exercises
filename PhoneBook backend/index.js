@@ -1,8 +1,31 @@
 const { nanoid } = require('nanoid')
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+
+morgan.token('post-info', function (req, res) {
+    if (req.method != 'POST') {
+        return ""
+    }
+    return (JSON.stringify({
+        name: req.body.name,
+        number: req.body.number
+    }))
+})
+
+app.use(morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    tokens['post-info'](req, res)
+  ].join(' ')
+}))
+
 
 
 let persons = [
@@ -33,7 +56,6 @@ const getInfo = () => (
      <p>${new Date()}</p>`
 )
 
-
 app.get('/info', (req, res) => {
     res.send(getInfo())
 })
@@ -43,7 +65,7 @@ app.get('/api/persons', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
+    const id = req.params.id
     const person = persons.find(person => person.id === id)
     if (person) {
         res.json(person)
@@ -89,6 +111,13 @@ app.delete('/api/persons/:id', (req, res) => {
     console.log(`Deleting person with id ${id}`, persons)
     res.status(204).end()
 })
+
+
+
+const unknownEndPoint = (request, response) => {
+    response.status(400).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndPoint)
 
 
 const PORT = 3001
