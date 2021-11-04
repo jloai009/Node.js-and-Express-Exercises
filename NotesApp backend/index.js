@@ -55,6 +55,13 @@ app.delete('/api/notes/:id', (request, response) => {
     response.status(204).end()
 })
 
+app.put('/api/notes/:id', (request, response) => {
+    newNote = request.body
+    const id = Number(request.params.id)
+    notes = notes.map(note => note.id !== id ? note : newNote)
+    response.json(newNote)
+})
+
 app.get('/api/notes', (request, response) => {
     response.json(notes)
 })
