@@ -1,4 +1,5 @@
 const notesRouter = require('express').Router()
+const { response } = require('express')
 const Note = require('../models/note')
 
 notesRouter.get('/', (request, response) => {
@@ -31,6 +32,14 @@ notesRouter.post('/', (request, response, next) => {
   note.save()
     .then(savedNote => {
       response.json(savedNote)
+    })
+    .catch(error => next(error))
+})
+
+notesRouter.delete('/id:', (request, response, next) => {
+  Note.findByIdAndRemove(request.params.id)
+    .then(() => {
+      response.status(204).end()
     })
     .catch(error => next(error))
 })
