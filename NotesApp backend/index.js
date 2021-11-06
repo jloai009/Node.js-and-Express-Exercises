@@ -6,11 +6,11 @@ const Note = require('./models/note')
 const { response } = require('express')
 
 const requestLogger = (request, response, next) => {
-    console.log('Method:', request.method)
-    console.log('Path:  ', request.path)
-    console.log('Body:  ', request.body)
-    console.log('---')
-    next()
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
 }
 
 app.use(express.static('build'))
@@ -18,33 +18,8 @@ app.use(express.json())
 app.use(requestLogger)
 app.use(cors())
 
-
-
-
-
-let notes = [
-  {
-    id: 1,
-    content: "HTML is easy",
-    date: "2019-05-30T17:30:31.098Z",
-    important: true
-  },
-  {
-    id: 2,
-    content: "Browser can execute only Javascript",
-    date: "2019-05-30T18:39:34.091Z",
-    important: false
-  },
-  {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    date: "2019-05-30T19:20:14.298Z",
-    important: true
-  }
-]
-
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+  response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/api/notes/:id', (request, response, next) => {
@@ -54,26 +29,26 @@ app.get('/api/notes/:id', (request, response, next) => {
     } else {
       response.status(404).end()
     }
-    
+
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/api/notes', (request, response) => {
   Note.find({}).then(notes => {
-      response.json(notes)
-    })
+    response.json(notes)
+  })
 })
 
-app.delete('/api/notes/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response, next) => {
   Note.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
 })
 
-app.put('/api/notes/:id', (request, response) => {
+app.put('/api/notes/:id', (request, response, next) => {
   const body = request.body
 
   const note = {
@@ -87,14 +62,6 @@ app.put('/api/notes/:id', (request, response) => {
     })
     .catch(error => next(error))
 })
-
-
-const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id))
-    : 0
-  return maxId + 1
-}
 
 app.post('/api/notes', (request, response, next) => {
   const body = request.body
@@ -122,7 +89,7 @@ app.post('/api/notes', (request, response, next) => {
 })
 
 const unknownEndPoint = (request, response) => {
-    response.status(400).send({ error: 'unknown endpoint' })
+  response.status(400).send({ error: 'unknown endpoint' })
 }
 app.use(unknownEndPoint)
 
@@ -142,5 +109,5 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`)
 })
