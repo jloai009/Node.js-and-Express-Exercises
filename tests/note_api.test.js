@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt')
 const supertest = require('supertest')
 const mongoose = require('mongoose')
 const helper = require('./test_helper')
@@ -5,6 +6,7 @@ const app = require('../app')
 const api = supertest(app)
 
 const Note = require('../models/note')
+const User = require('../models/user')
 
 beforeEach(async () => {
   await Note.deleteMany({})
@@ -72,6 +74,21 @@ describe('viewing a specific note', () => {
 })
 
 describe('addition of a new note', () => {
+  let token = null
+  beforeAll(async () => {
+    await User.deleteMany({})
+
+    const passwordHash = await bcrypt.hash('sekret', 10)
+    const user = new User({ username: 'root', passwordHash })
+
+    await user.save()
+
+    const response = await api
+      .post('/api/login')
+      .send({ username: 'root', password: 'sekret' })
+    token =  response.body.token
+  })
+
   test('succeeds with valid data', async () => {
     const newNote = {
       content: 'async/await simplifies making async calls',
@@ -80,6 +97,7 @@ describe('addition of a new note', () => {
 
     await api
       .post('/api/notes')
+      .set('Authorization', 'bearer ' + token)
       .send(newNote)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -92,6 +110,7 @@ describe('addition of a new note', () => {
     expect(contents).toContain(
       'async/await simplifies making async calls'
     )
+
   })
 
   test('fails with status code 400 if data invaild', async () => {
@@ -101,6 +120,7 @@ describe('addition of a new note', () => {
 
     await api
       .post('/api/notes')
+      .set('Authorization', 'bearer ' + token)
       .send(newNote)
       .expect(400)
 
@@ -108,6 +128,7 @@ describe('addition of a new note', () => {
 
     expect(notesAtEnd).toHaveLength(helper.initialNotes.length)
   })
+
 })
 
 describe('deletion of a note', () => {
