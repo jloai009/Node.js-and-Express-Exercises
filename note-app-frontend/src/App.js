@@ -97,7 +97,7 @@ const App = () => {
     </form>
   }
 
-  const loginFormProps = { username, setUsername, password, setPassword, handleLogin}
+  const loginFormProps = { username, setUsername, password, setPassword, handleLogin }
 
   return (
     <div>
