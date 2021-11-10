@@ -24,6 +24,15 @@ const App = () => {
       })
   }, [])
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      noteService.setToken(user.token)
+    }
+  }, [])
+
   const addNote = (event) => {
     event.preventDefault()
     const noteObject = {
@@ -59,11 +68,6 @@ const App = () => {
       })
   }
 
-  const handleNoteChange = (event) => {
-    console.log(event.target.value)
-    setNewNote(event.target.value)
-  }
-
   const notesToShow = showAll
     ? notes
     : notes.filter(note => note.important)
@@ -76,6 +80,9 @@ const App = () => {
         username, password
       })
 
+      window.localStorage.setItem(
+        'loggedNoteappUser', JSON.stringify(user)
+      )
       noteService.setToken(user.token)
       setUser(user)
       setUsername('')
@@ -88,20 +95,24 @@ const App = () => {
     }
   }
 
-  const noteForm = () => {
-    <form onSubmit={addNote}>
-      <input
-        value={newNote}
-        onChange={handleNoteChange}
-      />
-    </form>
-  }
+  const noteForm = () => (
+    <div>
+      <form onSubmit={addNote}>
+        <label>Add a Note: &nbsp;</label>
+        <input
+          value={newNote}
+          onChange={({ target }) => setNewNote(target.value)}
+        />
+        <button type="submit">save</button>
+      </form>
+    </div>
+  )
 
   const loginFormProps = { username, setUsername, password, setPassword, handleLogin }
 
   return (
     <div>
-      <h1>Notes</h1>
+      <h1>NotesApp</h1>
       <Notification message={errorMessage} />
 
       {user === null ?
@@ -109,7 +120,16 @@ const App = () => {
           props={loginFormProps}
         /> :
         <div>
-          <p>{user.name} logged-in</p>
+          <div>
+            {user.name} logged-in &nbsp;
+            <button onClick={() => {
+              window.localStorage.removeItem('loggedNoteappUser')
+              setUser(null)
+            }}>
+              Log out
+            </button>
+          </div>
+          <br />
           {noteForm()}
         </div>
       }
@@ -130,13 +150,6 @@ const App = () => {
             />
         )}
       </ul>
-      <form onSubmit={addNote}>
-        <input
-          value={newNote}
-          onChange={({ target }) => setNewNote(target.value)}
-        />
-        <button type="submit">save</button>
-      </form>
       <Footer />
     </div>
   )
