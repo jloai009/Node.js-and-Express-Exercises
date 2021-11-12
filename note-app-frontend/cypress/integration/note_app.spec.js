@@ -2,6 +2,13 @@
 
 describe('Note app', function () {
   beforeEach(function () {
+    cy.request('POST', 'http://localhost:3001/api/testing/reset')
+    const user = {
+      name: 'Jose',
+      username: 'Jose',
+      password: 'Josespassword'
+    }
+    cy.request('POST', 'http://localhost:3001/api/users/', user)
     cy.visit('http://localhost:3000')
   })
 
@@ -15,26 +22,51 @@ describe('Note app', function () {
     cy.get('#username').type('Jose')
     cy.get('#password').type('Josespassword')
     cy.get('#login-button').click()
-    cy.contains('_Superuser logged in')
+    cy.contains('Jose logged in')
   })
 
   describe('when logged in', function () {
     beforeEach(function () {
-      cy.contains('log in').click()
-      cy.get('#username').type('Jose')
-      cy.get('#password').type('Josespassword')
-      cy.get('#login-button').click()
+      cy.login({ username: 'Jose', password: 'Josespassword' })
     })
 
     it('a new note can be created', function () {
       cy.contains('new note').click()
       cy.get('input').type('a note created by cypress')
       cy.contains('save').click()
+      cy.contains('show all').click()
       cy.contains('a note created by cypress')
     })
+
+    describe('and several notes exists', function () {
+      beforeEach(function () {
+        cy.createNote({ content: 'first note', important: false })
+        cy.createNote({ content: 'second note', important: false })
+        cy.createNote({ content: 'third note', important: false })
+      })
+
+      it('one of those can be made important', function () {
+        cy.contains('show all').click()
+        cy.contains('second note').parent().find('button').as('theButton')
+        cy.get('@theButton').click()
+        cy.get('@theButton').should('contain', 'make not important')
+      })
+    })
   })
+  it('login fails with wrong password', function() {
+    cy.contains('log in').click()
+    cy.get('#username').type('mluukkai')
+    cy.get('#password').type('wrong')
+    cy.get('#login-button').click()
 
+    cy.get('.error').contains('wrong credentials')
+    cy.get('.error')
+      .should('contain', 'wrong credentials')
+      .and('have.css', 'color', 'rgb(255, 0, 0)')
+      .and('have.css', 'border-style', 'solid')
 
+    cy.get('html').should('not.contain', 'Jose logged in')
+  })
 })
 
 /* eslint-disable no-undef */
