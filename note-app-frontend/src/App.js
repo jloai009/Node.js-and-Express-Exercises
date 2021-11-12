@@ -13,8 +13,8 @@ const App = () => {
   const [showAll, setShowAll] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
 
-  const [username, setUsername] = useState('mluukkai')
-  const [password, setPassword] = useState('mluukkai')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
 
   const [user, setUser] = useState(null)
 
